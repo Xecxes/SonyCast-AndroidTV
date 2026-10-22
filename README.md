@@ -1,124 +1,77 @@
-# AirPlay &amp; DLNA Receiver for Android (TV · Phone · Tablet)
+# SonyCast Android TV
 
-Turn any Android device — especially an **Android TV** — into a wireless receiver.
+适用于 Android TV 的 AirPlay + DLNA 投屏接收端，按电视遥控器操作重新设计。
+当前版本：**1.0.0-sony-test12-seek**（versionCode 33）。已在 Sony A80EK / Android 12 上验证。
 
-- 📱 **AirPlay** — mirror or stream from iPhone, iPad, and Mac.
-- 🎵 **DLNA** — play video / music / photo files sent from Android apps or a Windows PC.
-- 🔁 **Screen mirror an Android phone** to the TV, even if the TV's built‑in Cast / Miracast doesn't work.
+基于 [F-e-n-y-x/airplay-dlna-receiver](https://github.com/F-e-n-y-x/airplay-dlna-receiver)
+修改，保留上游提交历史、版权和 GPL-3.0 许可；上游基准提交为
+`c045344146c21c8834b0c02e76762d0db5dba584`。
+原上游说明保存在 [README.upstream.md](README.upstream.md)。
 
-Works on **Android 9 through Android 16**. One app for TVs, phones, and tablets.
+## 功能
 
-> Based on the excellent open‑source [jqssun/android-airplay-server](https://github.com/jqssun/android-airplay-server), with DLNA, in‑app screen mirroring, dark mode, and Android‑TV UI added on top.
+- AirPlay 屏幕镜像、音频及标准 URL/HLS 视频接收。
+- DLNA MediaRenderer，通过手机视频 App 或其他 DLNA 控制端播放媒体链接。
+- 中文 TV 界面：左侧导航、分组设置、清晰的遥控器焦点、居中播放器小图标。
+- 左右键直接快退/快进，控件隐藏时也生效；显示当前视频尺寸。
+- 长按加速：满 2 秒进入 2×，3 秒 3×，4 秒 4×，5 秒及以上保持 5×。
+- 修复中文 DLNA SOAP 请求超时、部分发送端开播后重复归零及同 URI 重复重载。
+- 支持 armeabi-v7a 与 arm64-v8a；最低 Android 9，target SDK 35。
 
----
+## 使用
 
-## ✨ What it can do
+1. 安装自行构建的 APK，在电视上打开“电视投屏”，按提示授予所需权限并启动接收。
+2. 手机和电视连接同一局域网，选择电视应用里显示的设备名称。初始名称为 `Sony A80EK Cast`，可以修改。
+3. iPhone / iPad / Mac 可用系统屏幕镜像；视频 App 内的投屏入口可能走 DLNA，取决于 App。
 
-| Feature | What it means |
-|---|---|
-| **AirPlay receiver** | Press *Screen Mirroring* on an iPhone/iPad/Mac and your screen (or audio) shows up on the Android device. H.264 + H.265 video, AAC/ALAC audio. |
-| **DLNA media renderer** | From Android apps with a *"Play to / Cast to device"* button, or Windows' *"Cast to Device"*, send a video/song/photo **file** to play here. |
-| **Android → TV screen mirroring** | Install the app on a phone too, tap **Mirror my screen to a TV**, and the phone's screen streams to the TV over Wi‑Fi. No Chromecast/Miracast needed. |
-| **Background service** | Starts on boot, keeps running, and jumps to the front when a device connects. |
-| **Dark mode** | System / Light / Dark, with a clean colour theme. |
-| **Android TV ready** | Full remote (D‑pad) navigation with clear focus highlighting. |
+| 遥控器操作 | 结果 |
+| --- | --- |
+| 单按左 / 右 | 后退 / 前进 10 秒 |
+| 持续按住左 / 右 | 按 1× → 2× → 3× → 4× → 5× 增加跳转距离 |
+| 松开或换方向 | 清空加速档位，下次从 1× 开始 |
+| 隐藏控件时按确定 | 一次播放 / 暂停，并显示控件 |
+| 上 / 下 | 显示控件；中央按钮下键进入进度条 |
+| 返回 | 先收起控件，再按退出播放 |
 
----
+加速倍率相对于原有 10 秒跳转：每个已处理重复事件分别跳 10 / 20 / 30 / 40 / 50 秒，
+重复事件间隔至少 250 ms。它加快定位进度，正常播放速率不变。暂停时跳转仍保持暂停。
+控件显示的分辨率来自当前解码视频尺寸。
 
-## 📥 Install
+## 构建与验证
 
-1. Open the **[Releases](../../releases)** page.
-2. Download the latest **`AirPlayDLNAReceiver-vX.X.X.apk`**.
-3. Open the file on your Android device and tap **Install**. If asked, allow *"Install unknown apps"*.
+详见 [BUILDING.md](BUILDING.md)。需要 JDK 17 或 21、Android SDK 35、Build Tools 35.0.0、
+NDK 28.2.13676358 和 CMake 3.22.1。
 
-### Installing on an Android TV (using a PC)
-
-Android TVs usually have no file manager, so use **adb** over the network:
-
-1. On the TV: **Settings → System → About → press "Build" 7 times** to unlock Developer options, then turn on **Network debugging / ADB debugging**. Note the TV's IP address.
-2. On your PC (with [platform‑tools](https://developer.android.com/tools/releases/platform-tools) installed):
-   ```bash
-   adb connect <TV-IP>:5555
-   adb install -r AirPlayDLNAReceiver-v1.0.0.apk
-   ```
-3. Accept the prompt on the TV. The app appears in the launcher as **"AirPlay Server"**.
-
-You can also copy the APK to a USB stick and install it with a TV file‑manager app.
-
----
-
-## 🚀 How to use
-
-Make sure the sending device and the Android receiver are on the **same Wi‑Fi network**.
-
-### From iPhone / iPad / Mac (AirPlay)
-1. Open the app on the receiver once so the server starts.
-2. On the Apple device open **Control Center → Screen Mirroring** (or AirPlay from a video/music app).
-3. Pick your device from the list. Your screen / audio appears on the receiver.
-
-### From Android or Windows — play a media file (DLNA)
-- **Android:** in an app that has a *"Play to / Cast to device"* option (many video and music players), pick this device.
-- **Windows:** open the **Movies &amp; TV** app or right‑click a video in **File Explorer → Cast to Device**, then pick this device.
-
-### Mirror an Android phone's screen to the TV
-1. Install this same app on the phone **and** the TV.
-2. On the phone, open the app and tap **"Mirror my screen to a TV"**.
-3. Choose your TV from the list and approve the screen‑capture prompt. Your phone screen shows on the TV.
-
-### A note about "Cast" and "Miracast"
-Google Cast (the Chromecast button) and Miracast **receivers** are part of a TV's system software and **cannot be added by any app** — so this app can't turn a TV into a Chromecast. If your TV already has them, use them directly. This app gives you **AirPlay**, **DLNA**, and its **own Android→TV mirroring** as open alternatives.
-
----
-
-## 🔐 Permissions (asked on first launch)
-
-The app shows a short welcome screen asking for:
-
-- **Notifications** – keeps the background service alive.
-- **Display over other apps** – lets the picture pop up over whatever is on screen when a device connects.
-- **Disable battery optimization** – stops the system from killing the background receiver.
-
-You can change these any time in your system settings.
-
-> DRM‑protected content (Netflix, the Apple TV app, etc.) **cannot** be received — that's an Apple/Google restriction, not a bug.
-
----
-
-## ⚙️ Settings worth knowing
-
-- **Device name** – what shows up in the AirPlay/DLNA list.
-- **Resolution / Max FPS** – lower these (e.g. 1280×720 @ 30) on cheaper TVs if mirroring stutters.
-- **PIN** – require a code before a device can connect.
-- **Theme** – System / Light / Dark.
-- Toggles for the **DLNA** renderer and **screen‑mirroring** receiver.
-
----
-
-## 🛠️ Build it yourself
-
-Requirements: Android SDK (platform 35), **NDK 27.0.12077973**, **CMake 3.22.1**, JDK 17+. The native AirPlay core is compiled with the NDK; OpenSSL is pulled in as a prebuilt for Android, so no extra setup is needed there. See **[BUILDING.md](BUILDING.md)** for full details.
-
-```bash
-git clone https://github.com/F-e-n-y-x/airplay-dlna-receiver.git
-cd airplay-dlna-receiver
-./gradlew assembleRelease   # output: app/build/outputs/apk/release/
+```shell
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
 ```
 
-> Build from a path **without spaces** — the Android NDK fails on paths that contain spaces.
+Windows 使用 `gradlew.bat`。APK 位于 `app/build/outputs/apk/debug/app-debug.apk`。
+本地 SDK 路径和签名密钥自行配置，不包含在仓库内；debug 构建使用本机自动生成的测试签名。
 
----
+test12 已通过 18 项 JVM 单元测试；Android Lint 为 0 错误、59 警告、1 条信息。
+在 A80EK 上通过标准方向键事件验证了两个方向的全部加速档位、实际跳转距离、松开复位与暂停保持，
+并用实际 MP4 回归播放控制。标准 AirPlay URL 视频播放、暂停和拖动也已回归。
+这不代表所有电视、实体遥控器、iOS 版本或视频平台均兼容。
 
-## 🙏 Credits
+更多说明：[TV 设计与按键](TV_DESIGN.md)、[构建修改与协议修复](SONY_BUILD.md)、
+[AirPlay 视频回移记录](AIRPLAY_VIDEO_BACKPORT.md)。
 
-- **[jqssun/android-airplay-server](https://github.com/jqssun/android-airplay-server)** — the AirPlay receiver this project is built on.
-- **[UxPlay](https://github.com/FDH2/UxPlay)** — the AirPlay / RAOP protocol core.
-- **[ALAC](https://github.com/macosforge/alac)**, **[libplist](https://github.com/libimobiledevice/libplist)**, **[openssl‑cmake](https://github.com/viaduck/openssl-cmake)**.
-- Screen mirroring uses Android **MediaProjection** + **Media3 (ExoPlayer)**.
+## 已知限制
 
-## 📄 License
+- 当前为自用互通测试版本。DRM 内容不在支持范围内；4K/HDR、照片、后台长期运行和待机恢复需要进一步验证。
+- 原生构建附带固定版本 OpenSSL 3.1.8 的 ARM 静态 libcrypto，版本较旧，正式发布前应升级。
+  来源、许可证、校验值及重建脚本见 [OpenSSL 说明](app/src/main/cpp/third_party/android-openssl/PROVENANCE.md)。
+- 首次开播窗口内的首个远端 Seek(0) 会被兼容逻辑忽略一次；具体条件和边界见 SONY_BUILD.md。
 
-Licensed under **GPL‑3.0** (because it builds on GPL‑3.0 projects). See **[LICENSE](LICENSE)**. If you share a modified version, you must also share your source under GPL‑3.0.
+## 开源许可与致谢
 
-## ⚠️ Disclaimer
+本项目按 [GPL-3.0](LICENSE) 提供；分发修改版时请遵守其源码提供要求。
+保留上游及第三方代码的版权和各自许可文件。主要来源包括：
 
-This project is **not affiliated with Apple Inc.** "AirPlay" is a trademark of Apple Inc. Use it with content you have the right to stream.
+- [F-e-n-y-x/airplay-dlna-receiver](https://github.com/F-e-n-y-x/airplay-dlna-receiver)
+- [jqssun/android-airplay-server](https://github.com/jqssun/android-airplay-server)
+- [UxPlay](https://github.com/FDH2/UxPlay)
+- AndroidX Media3、Compose、Hilt，以及随源码附带的 ALAC、libplist、llhttp、playfair 和 OpenSSL 构建依赖。
+
+本项目不是 Sony、Apple 或 Google 的官方产品，与这些品牌没有关联。

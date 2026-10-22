@@ -10,3 +10,9 @@
 .cxx/
 
 *.jks
+.kotlin/
+*.keystore
+*.p12
+*.pfx
+.env
+.env.*

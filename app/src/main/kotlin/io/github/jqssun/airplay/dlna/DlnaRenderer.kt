@@ -3,8 +3,6 @@ package io.github.jqssun.airplay.dlna
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.util.Log
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.OutputStream
 import java.net.DatagramPacket
 import java.net.InetAddress
@@ -257,32 +255,8 @@ class DlnaRenderer(
     private fun handleHttp(client: Socket) {
         try {
             client.soTimeout = 15000
-            val input = BufferedReader(InputStreamReader(client.getInputStream()))
-            val requestLine = input.readLine() ?: return
-            val parts = requestLine.split(" ")
-            if (parts.size < 2) return
-            val method = parts[0].uppercase()
-            val path = parts[1]
-            val headers = HashMap<String, String>()
-            var line = input.readLine()
-            while (!line.isNullOrEmpty()) {
-                val i = line.indexOf(':')
-                if (i > 0) headers[line.substring(0, i).trim().lowercase()] = line.substring(i + 1).trim()
-                line = input.readLine()
-            }
-            var body = ""
-            val len = headers["content-length"]?.toIntOrNull() ?: 0
-            if (len > 0) {
-                val chars = CharArray(len)
-                var read = 0
-                while (read < len) {
-                    val r = input.read(chars, read, len - read)
-                    if (r < 0) break
-                    read += r
-                }
-                body = String(chars, 0, read)
-            }
-            routeHttp(client.getOutputStream(), method, path, headers, body)
+            val request = DlnaHttpRequestReader.read(client.getInputStream().buffered()) ?: return
+            routeHttp(client.getOutputStream(), request.method, request.path, request.headers, request.body)
         } catch (e: Exception) {
             Log.w(tag, "http handler error: ${e.message}")
         } finally {
@@ -412,7 +386,9 @@ class DlnaRenderer(
                 "Stop" -> { DlnaController.player?.stop(); DlnaController.transportState = DlnaController.STATE_STOPPED; DlnaSoap.stopResponse() }
                 "Seek" -> {
                     val target = arg(body, "Target")
-                    DlnaController.player?.seekTo(parseTime(target))
+                    val targetMs = parseTime(target)
+                    Log.i(tag, "Seek targetMs=$targetMs positionMs=${DlnaController.positionMs} state=${DlnaController.transportState}")
+                    DlnaController.player?.seekTo(targetMs)
                     DlnaSoap.seekResponse()
                 }
                 "GetTransportInfo" -> DlnaSoap.getTransportInfo(DlnaController.transportState)

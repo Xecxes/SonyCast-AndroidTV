@@ -13,7 +13,6 @@ class MirrorReceiverActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        goFullscreen()
         MirrorBridge.finishDisplay = { runOnUiThread { finish() } }
 
         val view = SurfaceView(this)
@@ -23,6 +22,7 @@ class MirrorReceiverActivity : Activity() {
             override fun surfaceDestroyed(h: SurfaceHolder) = MirrorBridge.onDisplaySurfaceGone(h.surface)
         })
         setContentView(view)
+        goFullscreen()
     }
 
     private fun goFullscreen() {

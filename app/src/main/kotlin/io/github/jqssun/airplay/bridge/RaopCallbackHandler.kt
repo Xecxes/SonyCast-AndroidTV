@@ -15,4 +15,9 @@ interface RaopCallbackHandler {
     fun onProgress(start: Long, curr: Long, end: Long)
     fun onDacpId(dacpId: String, activeRemote: String)
     fun onAudioOnly(audioOnly: Boolean)
+    fun onVideoPlay(location: String, startPositionSeconds: Float)
+    fun onVideoScrub(positionSeconds: Float)
+    fun onVideoRate(rate: Float)
+    fun onVideoStop()
+    fun onVideoPlaybackInfo(): DoubleArray
 }

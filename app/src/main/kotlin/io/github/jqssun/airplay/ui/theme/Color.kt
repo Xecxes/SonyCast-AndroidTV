@@ -12,6 +12,16 @@ private val BlueLightOnDark = Color(0xFFADC6FF)
 private val Teal = Color(0xFF12B5A6)
 private val TealLightOnDark = Color(0xFF7CD8CC)
 
+val TvColors = darkColorScheme(
+    primary = Color(0xFF83F2D1), onPrimary = Color(0xFF08251E),
+    primaryContainer = Color(0xFF244C47), onPrimaryContainer = Color(0xFFD9FFF0),
+    secondary = Color(0xFFB4CDFF), onSecondary = Color(0xFF142341),
+    background = Color(0xFF0A101B), onBackground = Color(0xFFF4F7FC),
+    surface = Color(0xFF141E2D), onSurface = Color(0xFFF4F7FC),
+    surfaceVariant = Color(0xFF243347), onSurfaceVariant = Color(0xFFBAC8DC),
+    outline = Color(0xFF8295AE), error = Color(0xFFFFB4AB),
+)
+
 val BrandLightColors = lightColorScheme(
     primary = Blue,
     onPrimary = Color.White,

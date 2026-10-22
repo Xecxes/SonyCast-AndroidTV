@@ -15,7 +15,7 @@ val localProps = Properties().apply {
 android {
     namespace = "io.github.jqssun.airplay"
     compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     if (localProps.containsKey("storeFile")) {
         signingConfigs {
@@ -29,14 +29,15 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.jqssun.airplay"
+        applicationId = "local.sonycast.receiver"
         minSdk = 28
         targetSdk = 35
-        versionCode = 22
-        versionName = "1.0.0"
+        versionCode = 33
+        versionName = "1.0.0-sony-test12-seek"
+        testInstrumentationRunner = "io.github.jqssun.airplay.ui.SeekHoldInstrumentation"
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
 
         externalNativeBuild {
@@ -85,6 +86,7 @@ tasks.withType<Zip>().configureEach {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime)
@@ -92,6 +94,7 @@ dependencies {
     implementation(libs.androidx.datastore.prefs)
     implementation(libs.androidx.media)
     implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.ui)
     implementation(libs.kotlinx.coroutines)
 

@@ -6,8 +6,9 @@ import android.media.MediaFormat
 object Prefs {
     const val NAME = "settings"
 
-    const val SERVER_NAME = "server_name"; const val DEF_SERVER_NAME = "Android AirPlay"
-    const val SERVER_PORT = "server_port"; const val DEF_SERVER_PORT = 7000
+    const val SERVER_NAME = "server_name"; const val DEF_SERVER_NAME = "Sony A80EK Cast"
+    // Advertised through mDNS; use a separate port from receivers built into some TVs.
+    const val SERVER_PORT = "server_port"; const val DEF_SERVER_PORT = 7100
     const val AUTO_START = "auto_start"; const val DEF_AUTO_START = true
     const val BOOT_AUTO_START = "boot_auto_start"; const val DEF_BOOT_AUTO_START = true
     const val H265_ENABLED = "h265_enabled"; const val DEF_H265_ENABLED = true
@@ -17,11 +18,11 @@ object Prefs {
     val KEY_OPERATING_RATE: String = MediaFormat.KEY_OPERATING_RATE; const val DEF_KEY_OPERATING_RATE = true
     const val SCHEDULED_OUTPUT_BUFFER_RELEASE = "scheduled_output_buffer_release"; const val DEF_SCHEDULED_OUTPUT_BUFFER_RELEASE = false
     const val AUDIO_BUFFER_MULTIPLIER = "audio_buffer_multiplier"; const val DEF_AUDIO_BUFFER_MULTIPLIER = 4
-    const val ALAC_ENABLED = "alac_enabled"; const val DEF_ALAC_ENABLED = false
+    const val ALAC_ENABLED = "alac_enabled"; const val DEF_ALAC_ENABLED = true
     const val SW_ALAC_ENABLED = "sw_alac_enabled"; const val DEF_SW_ALAC_ENABLED = true
     const val AAC_ENABLED = "aac_enabled"; const val DEF_AAC_ENABLED = true
-    const val RESOLUTION = "resolution"; const val DEF_RESOLUTION = "auto"
-    const val MAX_FPS = "max_fps"; const val DEF_MAX_FPS = 60
+    const val RESOLUTION = "resolution"; const val DEF_RESOLUTION = "1920x1080"
+    const val MAX_FPS = "max_fps"; const val DEF_MAX_FPS = 30
     const val OVERSCANNED = "overscanned"; const val DEF_OVERSCANNED = false
     const val REQUIRE_PIN = "require_pin"; const val DEF_REQUIRE_PIN = false
     const val ALLOW_NEW_CONN = "allow_new_conn"; const val DEF_ALLOW_NEW_CONN = false

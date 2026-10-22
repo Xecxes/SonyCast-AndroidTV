@@ -141,6 +141,8 @@ fun MainScreen(
             onExitFullscreen = { fullscreen = false },
             onPip = onPip
         )
+    } else if (isTv()) {
+        TvDashboard(viewModel, video, onFullscreen = { fullscreen = true })
     } else {
         Scaffold(
             bottomBar = {
@@ -167,7 +169,9 @@ fun MainScreen(
     }
 
     // pin dialog
-    if (pin != null) {
+    if (pin != null && isTv()) {
+        TvNotice(stringResource(R.string.dialog_pin_title), pin!!, { viewModel.dismissPin() }, largeMessage = true)
+    } else if (pin != null) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissPin() },
             title = { Text(stringResource(R.string.dialog_pin_title)) },
@@ -186,7 +190,9 @@ fun MainScreen(
     }
 
     // audio mode notification
-    if (showModePrompt) {
+    if (showModePrompt && isTv()) {
+        TvNotice(stringResource(R.string.dialog_audio_mode_title), stringResource(R.string.dialog_audio_mode_text), { showModePrompt = false })
+    } else if (showModePrompt) {
         AlertDialog(
             onDismissRequest = { showModePrompt = false },
             title = { Text(stringResource(R.string.dialog_audio_mode_title)) },
@@ -208,6 +214,10 @@ fun MainScreen(
 
 @Composable
 private fun PermissionOnboardingDialog(onDone: () -> Unit) {
+    if (isTv()) {
+        TvOnboarding(onDone)
+        return
+    }
     val ctx = LocalContext.current
     val notifLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -468,6 +478,10 @@ private fun FullscreenVideo(
     onExitFullscreen: () -> Unit,
     onPip: () -> Unit
 ) {
+    if (isTv()) {
+        TvMirrorFullscreen(video, onExitFullscreen, onPip)
+        return
+    }
     val videoResolution by viewModel.videoResolution.collectAsState()
     val debugEnabled by viewModel.debugEnabled.collectAsState()
     val debugInfo by viewModel.debugInfo.collectAsState()

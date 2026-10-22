@@ -10,18 +10,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=. 
 set(UXPLAY_LIB third_party/UxPlay/lib)
 
 # ---------- OpenSSL ----------
-# Use viaduck prebuilt OpenSSL for Android instead of compiling from source.
-# Building OpenSSL from source requires a Linux host (the openssl-cmake scripts
-# shell out to ./Configure + make), which is unavailable on a Windows host.
-# The prebuilt tarballs (arm64-v8a/armeabi-v7a/x86_64-android) ship libcrypto.a,
-# which we link statically so nothing extra needs to be packaged.
-set(BUILD_OPENSSL OFF CACHE BOOL "" FORCE)
-set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
-set(OPENSSL_PREBUILT_VERSION "3.5.5" CACHE STRING "" FORCE)
-set(CROSS_ANDROID ON CACHE BOOL "" FORCE)
-
-list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-add_subdirectory(third_party/openssl-cmake)
+# The upstream prebuilt server returns an HTML login page, not an archive.
+# Bundle pinned KDAB Android OpenSSL static libraries so builds are reproducible.
+# See third_party/android-openssl/PROVENANCE.md for source and hashes.
+set(ANDROID_OPENSSL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/android-openssl)
+add_library(crypto STATIC IMPORTED)
+set_target_properties(crypto PROPERTIES
+    IMPORTED_LOCATION ${ANDROID_OPENSSL_DIR}/${ANDROID_ABI}/libcrypto.a
+    INTERFACE_INCLUDE_DIRECTORIES ${ANDROID_OPENSSL_DIR}/include)
 
 # ---------- libplist (built from submodule source) ----------
 set(PLIST_SRC third_party/libplist/src)

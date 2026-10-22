@@ -44,6 +44,8 @@ import io.github.jqssun.airplay.mirror.MirrorReceiver
 import io.github.jqssun.airplay.mirror.MirrorReceiverActivity
 import io.github.jqssun.airplay.renderer.AudioRenderer
 import io.github.jqssun.airplay.renderer.VideoRenderer
+import io.github.jqssun.airplay.video.AirPlayVideoSession
+import io.github.jqssun.airplay.video.AirPlayVideoActivity
 import io.github.jqssun.airplay.viewmodel.DebugInfo
 import java.net.NetworkInterface
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -239,7 +241,11 @@ class AirPlayService : Service(), RaopCallbackHandler {
         NativeBridge.nativeSetDisplaySize(nativeHandle, w, h, maxFps)
 
         val requestedPort = prefs.getInt(Prefs.SERVER_PORT, Prefs.DEF_SERVER_PORT).coerceIn(1, 65535)
-        val port = NativeBridge.nativeStart(nativeHandle, requestedPort)
+        var port = NativeBridge.nativeStart(nativeHandle, requestedPort)
+        if (port < 0) {
+            log("Port $requestedPort unavailable; retrying with an OS-assigned port")
+            port = NativeBridge.nativeStart(nativeHandle, 0)
+        }
         if (port < 0) {
             log("Failed to start on port $requestedPort")
             _failStart()
@@ -380,6 +386,23 @@ class AirPlayService : Service(), RaopCallbackHandler {
 
     // RaopCallbackHandler (called from native threads)
 
+    override fun onVideoPlay(location: String, startPositionSeconds: Float) {
+        log("AirPlay video URL received; starting media player")
+        AirPlayVideoSession.uri = location
+        AirPlayVideoSession.startSeconds = startPositionSeconds
+        AirPlayVideoSession.snapshot = doubleArrayOf(startPositionSeconds.toDouble(), 0.0, 0.0, 0.0, 1.0)
+        Handler(Looper.getMainLooper()).post {
+            startActivity(Intent(this, AirPlayVideoActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            })
+        }
+    }
+
+    override fun onVideoScrub(positionSeconds: Float) { AirPlayVideoSession.control?.seek(positionSeconds) }
+    override fun onVideoRate(rate: Float) { AirPlayVideoSession.control?.rate(rate) }
+    override fun onVideoStop() { AirPlayVideoSession.control?.stop() }
+    override fun onVideoPlaybackInfo(): DoubleArray = AirPlayVideoSession.snapshot
+
     override fun onVideoData(data: ByteArray, ntpTimeNs: Long, isH265: Boolean) {
         videoRenderer.feedFrame(data, ntpTimeNs, isH265)
     }
@@ -413,6 +436,9 @@ class AirPlayService : Service(), RaopCallbackHandler {
 
     override fun onConnectionInit() {
         val firstConnection = _connectionCount.value == 0
+        if (firstConnection && AirPlayVideoSession.control == null) {
+            AirPlayVideoSession.snapshot = doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0)
+        }
         _connectionCount.value++
         log("Client connected (${_connectionCount.value})")
         if (!firstConnection) return

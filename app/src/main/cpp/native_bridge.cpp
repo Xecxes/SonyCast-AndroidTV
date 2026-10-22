@@ -34,9 +34,9 @@ typedef struct {
 
 static void _log_callback(void *cls, int level, const char *msg) {
     int prio = ANDROID_LOG_DEBUG;
-    if (level >= 5) prio = ANDROID_LOG_ERROR;
-    else if (level >= 4) prio = ANDROID_LOG_WARN;
-    else if (level >= 3) prio = ANDROID_LOG_INFO;
+    if (level <= 3) prio = ANDROID_LOG_ERROR;
+    else if (level == 4) prio = ANDROID_LOG_WARN;
+    else if (level <= 6) prio = ANDROID_LOG_INFO;
     __android_log_print(prio, TAG, "%s", msg);
 }
 
@@ -69,7 +69,7 @@ Java_io_github_jqssun_airplay_bridge_NativeBridge_nativeInit(
         return 0;
     }
 
-    raop_set_log_level(ctx->raop, 3); /* INFO */
+    raop_set_log_level(ctx->raop, 6); /* LOGGER_INFO */
     raop_set_log_callback(ctx->raop, _log_callback, NULL);
 
     /* Init2 with device_id and keyfile */
@@ -106,6 +106,9 @@ Java_io_github_jqssun_airplay_bridge_NativeBridge_nativeInit(
         LOGE("dnssd_init failed: %d", dns_err);
     } else {
         raop_set_dnssd(ctx->raop, ctx->dnssd);
+        raop_set_plist(ctx->raop, "hls", 1);
+        dnssd_set_airplay_features(ctx->dnssd, 0, 1);
+        dnssd_set_airplay_features(ctx->dnssd, 4, 1);
     }
 
     env->ReleaseStringUTFChars(keyFile, keyfile_c);
@@ -122,7 +125,8 @@ Java_io_github_jqssun_airplay_bridge_NativeBridge_nativeStart(
     server_ctx_t *ctx = (server_ctx_t *)(intptr_t)handle;
     if (!ctx || !ctx->raop) return -1;
 
-    unsigned short port = (unsigned short)(requestedPort > 0 ? requestedPort : 7000);
+    // Port zero lets the OS select a free port when the preferred port is busy.
+    unsigned short port = (unsigned short)(requestedPort >= 0 && requestedPort <= 65535 ? requestedPort : 7000);
     int ret = raop_start_httpd(ctx->raop, &port);
     if (ret < 0) {
         LOGE("raop_start_httpd failed: %d", ret);
@@ -130,6 +134,8 @@ Java_io_github_jqssun_airplay_bridge_NativeBridge_nativeStart(
     }
 
     LOGI("AirPlay server started on port %d", port);
+    // HLS playlists refer back to this server, including when the OS chose the port.
+    raop_set_port(ctx->raop, port);
 
     /* Register dnssd records (stored in shim, Kotlin reads them) */
     if (ctx->dnssd) {

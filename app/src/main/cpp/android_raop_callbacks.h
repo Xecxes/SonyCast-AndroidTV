@@ -25,6 +25,11 @@ typedef struct {
     jmethodID on_progress;
     jmethodID on_dacp_id;
     jmethodID on_audio_only;
+    jmethodID on_video_play;
+    jmethodID on_video_scrub;
+    jmethodID on_video_rate;
+    jmethodID on_video_stop;
+    jmethodID on_video_playback_info;
     int h265_enabled;
     int require_pin;
     char *registered_keys[16];

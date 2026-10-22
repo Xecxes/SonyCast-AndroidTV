@@ -49,6 +49,11 @@ void android_callbacks_init(android_callback_ctx_t *ctx, JNIEnv *env, jobject ca
     ctx->on_progress = (*env)->GetMethodID(env, cls, "onProgress", "(JJJ)V");
     ctx->on_dacp_id = (*env)->GetMethodID(env, cls, "onDacpId", "(Ljava/lang/String;Ljava/lang/String;)V");
     ctx->on_audio_only = (*env)->GetMethodID(env, cls, "onAudioOnly", "(Z)V");
+    ctx->on_video_play = (*env)->GetMethodID(env, cls, "onVideoPlay", "(Ljava/lang/String;F)V");
+    ctx->on_video_scrub = (*env)->GetMethodID(env, cls, "onVideoScrub", "(F)V");
+    ctx->on_video_rate = (*env)->GetMethodID(env, cls, "onVideoRate", "(F)V");
+    ctx->on_video_stop = (*env)->GetMethodID(env, cls, "onVideoStop", "()V");
+    ctx->on_video_playback_info = (*env)->GetMethodID(env, cls, "onVideoPlaybackInfo", "()[D");
     (*env)->DeleteLocalRef(env, cls);
 }
 
@@ -227,6 +232,61 @@ static int _video_set_codec(void *cls, video_codec_t codec) {
     return 0;
 }
 
+static void _video_play(void *cls, const char *location, const float position) {
+    android_callback_ctx_t *ctx = cls;
+    JNIEnv *env = _get_env(ctx);
+    if (!env || !location) return;
+    jstring url = (*env)->NewStringUTF(env, location);
+    (*env)->CallVoidMethod(env, ctx->callback_obj, ctx->on_video_play, url, (jfloat)position);
+    (*env)->DeleteLocalRef(env, url);
+}
+
+static void _video_scrub(void *cls, const float position) {
+    android_callback_ctx_t *ctx = cls;
+    JNIEnv *env = _get_env(ctx);
+    if (env) (*env)->CallVoidMethod(env, ctx->callback_obj, ctx->on_video_scrub, (jfloat)position);
+}
+
+static void _video_rate(void *cls, const float rate) {
+    android_callback_ctx_t *ctx = cls;
+    JNIEnv *env = _get_env(ctx);
+    if (env) (*env)->CallVoidMethod(env, ctx->callback_obj, ctx->on_video_rate, (jfloat)rate);
+}
+
+static void _video_stop(void *cls) {
+    android_callback_ctx_t *ctx = cls;
+    JNIEnv *env = _get_env(ctx);
+    if (env) (*env)->CallVoidMethod(env, ctx->callback_obj, ctx->on_video_stop);
+}
+
+static void _video_playback_info(void *cls, playback_info_t *info) {
+    android_callback_ctx_t *ctx = cls;
+    memset(info, 0, sizeof(*info));
+    JNIEnv *env = _get_env(ctx);
+    if (!env) return;
+    jdoubleArray snapshot = (*env)->CallObjectMethod(env, ctx->callback_obj, ctx->on_video_playback_info);
+    if (!snapshot) return;
+    if ((*env)->GetArrayLength(env, snapshot) >= 5) {
+        jdouble values[5];
+        (*env)->GetDoubleArrayRegion(env, snapshot, 0, 5, values);
+        info->position = values[0];
+        info->duration = values[1];
+        info->rate = (float)values[2];
+        info->ready_to_play = values[3] != 0;
+        info->playback_buffer_empty = values[4] != 0;
+        info->playback_buffer_full = !info->playback_buffer_empty;
+        info->playback_likely_to_keep_up = info->ready_to_play && !info->playback_buffer_empty;
+        info->seek_duration = info->duration > 0 ? info->duration : 0;
+    }
+    (*env)->DeleteLocalRef(env, snapshot);
+}
+
+static float _video_playlist_remove(void *cls) {
+    playback_info_t info;
+    _video_playback_info(cls, &info);
+    return (float)info.position;
+}
+
 void android_callbacks_fill(raop_callbacks_t *cbs, android_callback_ctx_t *ctx) {
     memset(cbs, 0, sizeof(raop_callbacks_t));
     cbs->cls = ctx;
@@ -254,6 +314,12 @@ void android_callbacks_fill(raop_callbacks_t *cbs, android_callback_ctx_t *ctx) 
     cbs->mirror_video_running = _mirror_video_running;
     cbs->display_pin = _display_pin;
     cbs->video_set_codec = _video_set_codec;
+    cbs->on_video_play = _video_play;
+    cbs->on_video_scrub = _video_scrub;
+    cbs->on_video_rate = _video_rate;
+    cbs->on_video_stop = _video_stop;
+    cbs->on_video_acquire_playback_info = _video_playback_info;
+    cbs->on_video_playlist_remove = _video_playlist_remove;
     if (ctx->require_pin) {
         cbs->check_register = _check_register;
         cbs->register_client = _register_client;
