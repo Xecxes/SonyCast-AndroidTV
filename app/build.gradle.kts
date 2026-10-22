@@ -32,8 +32,8 @@ android {
         applicationId = "local.sonycast.receiver"
         minSdk = 28
         targetSdk = 35
-        versionCode = 33
-        versionName = "1.0.0-sony-test12-seek"
+        versionCode = 34
+        versionName = "0.1.0"
         testInstrumentationRunner = "io.github.jqssun.airplay.ui.SeekHoldInstrumentation"
 
         ndk {

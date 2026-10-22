@@ -1,7 +1,7 @@
 # SonyCast Android TV
 
 适用于 Android TV 的 AirPlay + DLNA 投屏接收端，按电视遥控器操作重新设计。
-当前版本：**1.0.0-sony-test12-seek**（versionCode 33）。已在 Sony A80EK / Android 12 上验证。
+当前版本：**0.1.0**（versionCode 34）。已在 Sony A80EK / Android 12 上验证。
 
 基于 [F-e-n-y-x/airplay-dlna-receiver](https://github.com/F-e-n-y-x/airplay-dlna-receiver)
 修改，保留上游提交历史、版权和 GPL-3.0 许可；上游基准提交为
@@ -19,6 +19,10 @@
 - 支持 armeabi-v7a 与 arm64-v8a；最低 Android 9，target SDK 35。
 
 ## 使用
+
+在 [Releases](https://github.com/Xecxes/SonyCast-AndroidTV/releases) 下载 APK，
+或按下文说明自行构建。v0.1.0 使用 release 构建并沿用此前测试签名，便于覆盖升级；
+Android 包 ID 仍为 `local.sonycast.receiver`。
 
 1. 安装自行构建的 APK，在电视上打开“电视投屏”，按提示授予所需权限并启动接收。
 2. 手机和电视连接同一局域网，选择电视应用里显示的设备名称。初始名称为 `Sony A80EK Cast`，可以修改。
